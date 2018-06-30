@@ -1,4 +1,4 @@
-#! /bin/bash
+#!/bin/bash
 mage="$2"
 url="https://$1/"
 #host=localhost
