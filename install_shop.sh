@@ -1,63 +1,64 @@
 #!/bin/bash
-mage="$2"
-url="https://$1/"
-#host=localhost
-host="%"
+URL="https://$1/"
+WP_VERSION="$2"
+SHOP_VERSION="$3"
+#HOST=localhost
+HOST="%"
 
 ## Init DB
 /etc/init.d/mysql start
 
-commands="CREATE DATABASE \`secu\`;CREATE USER 'secu'@'${host}' IDENTIFIED BY 'secu';GRANT USAGE ON *.* TO 'secu'@'${host}' IDENTIFIED BY 'secu';GRANT ALL privileges ON \`secu\`.*
-TO 'secu'@'${host}';FLUSH PRIVILEGES;"
+commands="CREATE DATABASE \`secu\`;CREATE USER 'secu'@'${HOST}' IDENTIFIED BY 'secu';GRANT USAGE ON *.* TO 'secu'@'${HOST}' IDENTIFIED BY 'secu';GRANT ALL privileges ON \`secu\`.*
+TO 'secu'@'${HOST}';FLUSH PRIVILEGES;"
 
 echo "${commands}" | mysql
 
 
-## Install magento
+## Install WordPress
 cd /www
 
-echo "Download Magento v${mage}"
-wget -q https://github.com/magento/magento2/archive/${mage}.zip
-unzip -q ${mage}.zip -d .
-rm ${mage}.zip
-cd /www
-mv magento2-${mage}/* magento2-${mage}/.[^.]* . && rmdir magento2-${mage}/
+echo "Download WordPress v${WP_VERSION}"
+#wget -q https://github.com/WordPress/WordPress/archive/${WP_VERSION}.zip
+#unzip -q ${WP_VERSION}.zip -d .
+#rm ${WP_VERSION}.zip
 
-echo "Download Magento sample data v${mage}"
-wget -q https://github.com/magento/magento2-sample-data/archive/${mage}.zip
-unzip -q ${mage}.zip
-php -f /www/magento2-sample-data-${mage}/dev/tools/build-sample-data.php -- --ce-source="/www"
-rm ${mage}.zip
+#cd /www
+wget -q https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar
+chmod +x wp-cli.phar
+mv wp-cli.phar /usr/local/bin/wp
+#wp --info
+wp core download \
+    --allow-root \
+    --path=/www \
+    --locale=de_DE \
+    --version=${WP_VERSION} \
+    --force
 
-composer install --no-dev
+wp config create \
+    --allow-root \
+    --dbhost=localhost \
+    --dbname=secu \
+    --dbuser=secu \
+    --dbpass="secu" \
+     --locale=de_DE \
+    --force
 
-find var generated vendor pub/static pub/media app/etc -type f -exec chmod u+w {} \;
-find var vendor generated pub/static pub/media app/etc -type d -exec chmod u+w {} \;
-chmod u+x bin/magento
+(
+  echo "define('WP_DEBUG', true);"
+  echo "define('WP_DEBUG_LOG', true);"
+) >> wp-config.php
 
-php bin/magento setup:install \
-  --admin-firstname=secu \
-  --admin-lastname=x \
-  --admin-email=secu@example.com \
-  --admin-user=secu \
-  --admin-password=secu123 \
-  --base-url=${url} \
-  --base-url-secure=${url} \
-  --use-secure=1 \
-  --use-secure-admin=1 \
-  --backend-frontname=admin \
-  --db-host=localhost \
-  --db-name=secu \
-  --db-user=secu \
-  --db-password=secu \
-  --language=de_DE \
-  --currency=EUR \
-  --timezone=Europe/Berlin
+wp core install \
+    --allow-root \
+    --url=${HOST} \
+    --title="Test Wordpress" \
+    --admin_user=secu \
+    --admin_password=secu123 \
+    --admin_email=secu@example.com \
+    --skip-email
+
+rm -rf /www/wp-config-sample.php /app/wp-admin/install*.php
   
 ## Setting file permissions
 chown -R www-data /www
 chgrp -R www-data /www
-
-## php bin/magento setup:static-content:deploy -f
-## php bin/magento cache:flush
-## php bin/magento indexer:reindex
