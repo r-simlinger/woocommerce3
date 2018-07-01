@@ -46,8 +46,14 @@ wp config create \
 (
   echo "define('WP_DEBUG', true);"
   echo "define('WP_DEBUG_LOG', true);"
+  echo "define('WP_ALLOW_REPAIR', true);"
+  echo "define('FORCE_SSL_LOGIN', true);"
+  echo "define('FORCE_SSL_ADMIN', true);"
+  echo "define('WP_SITEURL', 'https://woocommerce3.runtest.de/');"
+  echo "define('WP_HOME', 'https://woocommerce3.runtest.de/');"
 ) >> wp-config.php
 
+### FIXME install works but site can not be loaded after installation
 wp core install \
     --allow-root \
     --url=${HOST} \
