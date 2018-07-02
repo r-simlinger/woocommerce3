@@ -46,11 +46,13 @@ wp config create \
 (
   echo "define('WP_DEBUG', true);"
   echo "define('WP_DEBUG_LOG', true);"
+  echo "define('WP_HOME','${URL}')";
+  echo "define('WP_SITEURL','443')";
 ) >> wp-config.php
 
 wp core install \
     --allow-root \
-    --url=${HOST} \
+    --url=${URL} \
     --title="Test Wordpress" \
     --admin_user=secu \
     --admin_password=secu123 \
