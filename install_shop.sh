@@ -47,7 +47,7 @@ wp config create \
   echo "define('WP_DEBUG', true);"
   echo "define('WP_DEBUG_LOG', true);"
   echo "define('WP_HOME','${URL}')";
-  echo "define('WP_SITEURL','443')";
+  echo "define('WP_SITEURL','${URL}')";
 ) >> wp-config.php
 
 wp core install \
